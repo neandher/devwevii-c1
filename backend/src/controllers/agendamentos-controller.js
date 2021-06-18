@@ -1,4 +1,5 @@
 const agendamentosModel = require('../models/agendamentos-model');
+const mongodb = require('../infra/mongodb');
 
 exports.adicionarAgendamento = (req, res) => {
   let agendamento = new agendamentosModel();

@@ -1,47 +1,43 @@
+  
+require('dotenv').config({
+  path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
+});
+
+console.log(process.env.NODE_ENV);
+
 const express = require('express');
-const bodyParser = require('body-parser');
+const { sync } = require('./infra/postgres');
 const app = express();
 
-const mongoose = require('mongoose');
+const port = process.env.APP_PORT;
+const hostname = process.env.APP_HOSTNAME;
 
-const port = 3000;
-const hostname = 'localhost';
+(async () => await sync())();
+
+const pessoasRoutes = require('./routes/pessoas-routes');
+const pessoasRoutesPg = require('./routes/pessoas-routes-pg');
+const unidadesRoutes = require('./routes/unidades-routes');
+const unidadesRoutesPg = require('./routes/unidades-routes-pg');
+const agendamentosRoutes = require('./routes/agendamentos-routes');
+const agendamentosRoutesPg = require('./routes/agendamentos-routes-pg');
+const defaultRoutes = require('./routes/default-routes');
 
 app.use(
-  bodyParser.urlencoded({
+  express.urlencoded({
     extended: true,
   })
 );
-app.use(bodyParser.json());
 
-const pessoasRoutes = require('./routes/pessoas-routes');
+app.use(express.json());
+
+app.get('/', defaultRoutes);
 app.use('/api/pessoas/', pessoasRoutes);
-
-const unidadesRoutes = require('./routes/unidades-routes');
+app.use('/api/pessoas-pg/', pessoasRoutesPg);
 app.use('/api/unidades/', unidadesRoutes);
-
-const agendamentosRoutes = require('./routes/agendamentos-routes');
+app.use('/api/unidades-pg/', unidadesRoutesPg);
 app.use('/api/agendamentos/', agendamentosRoutes);
-
-mongoose.connect(
-  'mongodb://root:faesa123@localhost:27017/devwebII?authSource=admin',
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
-
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'Erro ao conectar no Mongo'));
-db.once('open', function () {
-  console.log('Banco de Dados Mongo conectado com sucesso');
-});
-
-app.get('/', function (req, res) {
-  res.json({
-    status: 'ok',
-    message: 'Servidor rodando perfeitamente',
-  });
-});
+app.use('/api/agendamentos-pg/', agendamentosRoutesPg);
 
 app.listen(port, hostname, () => {
-  console.log(`Servidor rodando no endereço: https://${hostname}:${port}`);
+  console.log(`Servidor rodando no endereço: http://${hostname}:${port}`);
 });

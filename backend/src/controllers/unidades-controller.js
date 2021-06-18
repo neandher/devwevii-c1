@@ -1,4 +1,5 @@
 const unidadesModel = require('../models/unidades-model');
+const mongodb = require('../infra/mongodb');
 
 exports.adicionarUnidade = (req, res) => {
   unidadesModel.find((err, unidades) => {
